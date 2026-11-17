@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlashMind - Tarjetas de Estudio</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f0f4f8; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .phone-container { width: 100%; max-width: 400px; height: 90vh; background: white; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; border: 8px solid #333; }
+        header { background: #0284c7; color: white; padding: 20px; text-align: center; font-size: 1.2rem; font-weight: bold; }
+        
+        .content { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* Efecto 3D de la Tarjeta */
+        .flashcard-container { width: 100%; height: 250px; perspective: 1000px; margin-bottom: 30px; cursor: pointer; }
+        .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.6s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-radius: 15px; }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; border-radius: 15px; border: 2px solid #e2e8f0; text-align: center; }
+        .card-front { background: #f0f9ff; color: #0369a1; }
+        .card-back { background: #f0fdf4; color: #15803d; transform: rotateY(180deg); }
+        .card-face span { font-size: 0.8rem; text-transform: uppercase; color: #94a3b8; margin-bottom: 10px; }
+        
+        /* Botones de calificación */
+        .action-buttons { display: none; gap: 15px; width: 100%; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; font-size: 0.9rem; }
+        .btn-bad { background: #ef4444; }
+        .btn-good { background: #22c55e; }
+        .btn-flip { background: #64748b; width: 100%; }
+        
+        .score { margin-top: 15px; font-size: 0.9rem; color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <header>🗂️ FlashMind (Mazo de Estudio)</header>
+        
+        <div class="content" id="mainContent">
+            <div class="flashcard-container" onclick="flipCard()">
+                <div class="flashcard" id="card">
+                    <div class="card-face card-front">
+                        <span>Pregunta</span>
+                        <h2 id="questionText">Cargando...</h2>
+                        <p style="font-size:0.8rem; margin-top:20px; color:#94a3b8;">(Toca para girar)</p>
+                    </div>
+                    <div class="card-face card-back">
+                        <span>Respuesta Correcta</span>
+                        <h2 id="answerText">Cargando...</h2>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-flip" id="flipBtn" onclick="flipCard()">Ver Respuesta</button>
+
+            <div class="action-buttons" id="actionBtns">
+                <button class="btn btn-bad" onclick="rateCard(false)">No lo sabía 👎</button>
+                <button class="btn btn-good" onclick="rateCard(true)">Lo sabía 👍</button>
+            </div>
+
+            <div class="score" id="scoreText">Tarjeta 1 de 1</div>
+        </div>
+    </div>
+
+    <script>
+        // AQUÍ PUEDES AGREGAR MÁS TARJETAS SIGUIENDO EL MISMO FORMATO:
+        // { q: "Tu pregunta", a: "Tu respuesta" },
+        let deck = [
+            { q: "¿Cuál es el elemento químico con el símbolo 'H'?", a: "Hidrógeno" },
+            { q: "¿En qué año se descubrió América?", a: "1492" },
+            { q: "¿Qué tipo de software es Linux?", a: "Sistema Operativo de Código Abierto" },
+            { q: "¿Cuál es el río más largo del mundo?", a: "El Río Amazonas" },
+            { q: "¿Quién escribió 'Don Quijote de la Mancha'?", a: "Miguel de Cervantes" },
+            { q: "¿Cuál es la velocidad de la luz?", a: "Aprox. 300,000 km/s" }
+        ];
+        
+        let currentIndex = 0;
+        let score = 0;
+
+        function updateCard() {
+            if(currentIndex >= deck.length) {
+                document.getElementById('mainContent').innerHTML = `
+                    <div style="text-align:center; padding:20px;">
+                        <h2 style="color:#0284c7; margin-bottom:10px;">¡Estudio Terminado!</h2>
+                        <p style="color:#64748b;">Dominaste las tarjetas de este mazo.</p>
+                        <h1 style="font-size:3rem; margin:20px 0;">🎯 ${score}/${deck.length}</h1>
+                        <button class="btn btn-flip" onclick="location.reload()">Reiniciar Mazo</button>
+                    </div>`;
+                return;
+            }
+            
+            document.getElementById('card').classList.remove('flipped');
+            document.getElementById('questionText').innerText = deck[currentIndex].q;
+            document.getElementById('answerText').innerText = deck[currentIndex].a;
+            document.getElementById('scoreText').innerText = `Tarjeta ${currentIndex + 1} de ${deck.length}`;
+            
+            document.getElementById('flipBtn').style.display = 'block';
+            document.getElementById('actionBtns').style.display = 'none';
+        }
+
+        function flipCard() {
+            let cardElement = document.getElementById('card');
+            cardElement.classList.toggle('flipped');
+            if(cardElement.classList.contains('flipped')) {
+                document.getElementById('flipBtn').style.display = 'none';
+                document.getElementById('actionBtns').style.display = 'flex';
+            }
+        }
+
+        function rateCard(knewIt) {
+            if(knewIt) {
+                score++;
+                currentIndex++; 
+            } else {
+                let missedCard = deck.splice(currentIndex, 1)[0];
+                deck.push(missedCard); 
+            }
+            updateCard();
+        }
+
+        // Iniciar la aplicación al cargar la página
+        window.onload = function() {
+            updateCard();
+        };
+    </script>
+</body>
+  </html>
+                      
